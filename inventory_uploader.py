@@ -68,6 +68,17 @@ def process_csv(uploaded_file, channel, snapshot_date):
     if "MRP" in df.columns:
         df["MRP"] = df["MRP"].str.replace(",", "", regex=False)
 
+    # Parse Shelf_Life_Raw → clean numeric Shelf_Life_Pct
+    # Handles bad values like "MfgDate is greater Than ExpDate"
+    def parse_shelf_life(val):
+        try:
+            return float(str(val).replace("%", "").strip())
+        except:
+            return 0.0
+
+    if "Shelf_Life_Raw" in df.columns:
+        df["Shelf_Life_Pct"] = df["Shelf_Life_Raw"].apply(parse_shelf_life)
+
     # Add metadata columns
     df["Snapshot_Date"] = snapshot_date.strftime("%Y-%m-%d")
     df["Channel"]       = channel
